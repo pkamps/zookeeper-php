@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    ports:
+      - '2181:2181'
+    environment:
+      - ZOO_ENABLE_AUTH=yes
+      - ZOO_SERVER_USERS=user
+      - ZOO_SERVER_PASSWORDS=secret
+      - ZOO_CLIENT_USER=user
+      - ZOO_CLIENT_PASSWORD=secret

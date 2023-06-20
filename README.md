@@ -7,7 +7,7 @@
 The package could be installed with composer:
 
 ```shell
-composer require kafkiansky/_____
+composer require kafkiansky/zookeeper-php
 ```
 
 
