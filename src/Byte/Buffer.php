@@ -19,7 +19,12 @@ final class Buffer extends ByteBuffer
      */
     public function consumeErrorCode(): ErrorCode
     {
-        return ErrorCode::tryFrom($this->consumeInt32()) ?: ErrorCode::Unknown;
+        return ErrorCode::tryFrom($this->consumeInt32()) ?: ErrorCode::UNKNOWN;
+    }
+
+    public function appendBool(bool $v): self
+    {
+        return $this->appendUint8((int) $v);
     }
 
     public function appendString(string $v): self

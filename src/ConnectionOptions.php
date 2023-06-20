@@ -89,7 +89,7 @@ final class ConnectionOptions implements
         public readonly array $hosts,
         public readonly int $timeout = 10,
         public readonly ?ConnectContext $connectContext = null,
-        public readonly RequestOptions $requestOptions = new RequestOptions(1000),
+        public readonly RequestOptions $requestOptions = new RequestOptions(1000, 1),
     ) {
     }
 }

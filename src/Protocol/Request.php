@@ -13,7 +13,7 @@ use Kafkiansky\Zookeeper\Byte;
  * @template ResponseType of ZookeeperResponse
  * @template RequestType of ZookeeperRequest<ResponseType>
  *
- * @template-implements ZookeeperRequest<Response<ResponseType>>
+ * @template-implements ZookeeperRequest<Response>
  */
 final class Request implements ZookeeperRequest
 {
@@ -40,17 +40,8 @@ final class Request implements ZookeeperRequest
     /**
      * {@inheritdoc}
      */
-    public function type(): callable
+    public function type(): string
     {
-        return function (Byte\Buffer $buffer): Response {
-            $response = Response::unpack($buffer);
-
-            return ErrorCode::OK === $response->errorCode
-                ? $response->withZookeeperResponse(
-                    Byte\unpackResponse($this->request, $buffer),
-                )
-                : $response
-                ;
-        };
+        return Response::class;
     }
 }

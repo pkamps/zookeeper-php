@@ -34,7 +34,7 @@ final class AuthRequest implements ZookeeperRequest
     /**
      * {@inheritdoc}
      */
-    public function type(): string|callable
+    public function type(): string
     {
         return AuthResponse::class;
     }

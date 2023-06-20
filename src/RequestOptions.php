@@ -14,10 +14,12 @@ final class RequestOptions implements \IteratorAggregate
 
     /**
      * @param positive-int $timeout In milliseconds.
+     * @param float        $recvTimeout In seconds.
      * @param AuthScheme   ...$authSchemes
      */
     public function __construct(
         public readonly int $timeout,
+        public readonly float $recvTimeout,
         AuthScheme ...$authSchemes,
     ) {
         $this->authSchemes = $authSchemes;

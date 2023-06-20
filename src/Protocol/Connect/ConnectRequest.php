@@ -33,7 +33,7 @@ final class ConnectRequest implements ZookeeperRequest
             ->appendInt32($this->timeout)
             ->appendInt64($this->sessionId)
             ->appendString($this->password)
-            ->appendUint8((int) $this->readOnly)
+            ->appendBool($this->readOnly)
             ;
     }
 

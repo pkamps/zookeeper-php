@@ -6,7 +6,7 @@ on:
 
 jobs:
   psalm:
-    name: Psalm
+    name: PhpStan
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -28,4 +28,4 @@ jobs:
           command: composer update --prefer-dist --no-interaction --no-progress
       - name: Static Analysis
         continue-on-error: true
-        run: vendor/bin/psalm --no-cache
+        run: vendor/bin/phpstan analyse

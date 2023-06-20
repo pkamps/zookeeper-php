@@ -17,7 +17,7 @@ interface ZookeeperRequest
     public function pack(): Byte\Buffer;
 
     /**
-     * @return class-string<ResponseType>|callable(Byte\Buffer): Response<ResponseType>
+     * @return class-string<ResponseType>
      */
-    public function type(): string|callable;
+    public function type(): string;
 }

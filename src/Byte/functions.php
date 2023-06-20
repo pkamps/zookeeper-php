@@ -4,24 +4,28 @@ declare(strict_types=1);
 
 namespace Kafkiansky\Zookeeper\Byte;
 
+use Amp\Cancellation;
+use Amp\CancelledException;
 use Amp\Socket\Socket;
-use Kafkiansky\Zookeeper\Network\ByteReadException;
 use Kafkiansky\Zookeeper\Protocol;
 
 /**
- * @throws ByteReadException
- *
  * @internal
  * @psalm-internal Kafkiansky\Zookeeper
  *
  * @param int<1, max> $limit
  */
-function readFromSocket(Socket $socket, int $limit): Buffer
+function readFromSocket(Socket $socket, int $limit, ?Cancellation $cancellation = null): ?Buffer
 {
-    $read = $socket->read(limit: $limit);
+    try {
+        $read = $socket->read(cancellation: $cancellation, limit: $limit);
+        /** @phpstan-ignore-next-line */
+    } catch (CancelledException) {
+        return null;
+    }
 
     if (null === $read) {
-        throw new ByteReadException('The read bytes is null.');
+        return null;
     }
 
     return new Buffer($read);
@@ -55,16 +59,13 @@ function packRequest(Protocol\ZookeeperRequest $request): Buffer
  *
  * @throws \PHPinnacle\Buffer\BufferOverflow
  *
- * @return ResponseType|Protocol\Response<ResponseType>
+ * @return ResponseType
  */
 function unpackResponse(
     Protocol\ZookeeperRequest $request,
     Buffer $buffer,
-): Protocol\ZookeeperResponse|Protocol\Response {
+): Protocol\ZookeeperResponse {
     $type = $request->type();
 
-    return match (true) {
-        \is_callable($type) => $type($buffer),
-        default => $type::unpack($buffer),
-    };
+    return $type::unpack($buffer);
 }

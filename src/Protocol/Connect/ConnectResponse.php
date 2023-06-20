@@ -33,7 +33,7 @@ final class ConnectResponse implements ZookeeperResponse
             $buffer->consumeInt32(),
             $buffer->consumeInt32(),
             $buffer->consumeInt64(),
-            \bin2hex($buffer->consume($buffer->consumeInt32())),
+            \bin2hex($buffer->consumeString()),
             (bool) $buffer->consumeUint8(),
         );
     }

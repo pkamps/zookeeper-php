@@ -28,7 +28,8 @@ final class BufferedSocket
                 cancellation: 0 === $connectionOptions->timeout
                     ? new Amp\NullCancellation()
                     : new Amp\TimeoutCancellation($connectionOptions->timeout),
-            )
+            ),
+            $connectionOptions->requestOptions->recvTimeout,
         );
     }
 
@@ -44,19 +45,27 @@ final class BufferedSocket
     /**
      * @throws \PHPinnacle\Buffer\BufferOverflow
      */
-    public function read(): Byte\Buffer
+    public function read(?Amp\Cancellation $cancellation = null): ?Byte\Buffer
     {
-        /** @phpstan-var int<1, max> $len */
-        $len = Byte\readFromSocket($this->socket, 4)->consumeUint32();
+        /** @phpstan-var null|int<1, max> $len */
+        $len = Byte\readFromSocket($this->socket, 4, $this->createCancellation($cancellation))?->consumeUint32();
 
-        $buffer = Byte\readFromSocket($this->socket, $len);
+        if (null === $len) {
+            return null;
+        }
+
+        $buffer = Byte\readFromSocket($this->socket, $len, $this->createCancellation($cancellation));
+
+        if (null === $buffer) {
+            return null;
+        }
 
         while ($len > $buffer->size()) {
             /** @phpstan-var int<1, max> $remain */
             $remain = $len - $buffer->size();
 
             $buffer->append(
-                Byte\readFromSocket($this->socket, $remain),
+                Byte\readFromSocket($this->socket, $remain, $this->createCancellation($cancellation)) ?: '',
             );
         }
 
@@ -70,8 +79,19 @@ final class BufferedSocket
         }
     }
 
+    public function isClosed(): bool
+    {
+        return $this->socket->isClosed();
+    }
+
     private function __construct(
         private readonly Socket\Socket $socket,
+        private readonly float $recvTimeout,
     ) {
+    }
+
+    private function createCancellation(?Amp\Cancellation $cancellation = null): Amp\Cancellation
+    {
+        return $cancellation ?: new Amp\TimeoutCancellation($this->recvTimeout);
     }
 }

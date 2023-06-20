@@ -10,6 +10,9 @@ use Kafkiansky\Zookeeper\Protocol;
 use Kafkiansky\Zookeeper\Byte;
 use Kafkiansky\Zookeeper\Network;
 
+/**
+ * @api
+ */
 final class Zookeeper
 {
     /** @var Node[] */
@@ -32,20 +35,12 @@ final class Zookeeper
     {
         $socket = Network\BufferedSocket::connect($this->connectionOptions);
 
-        $request = new Protocol\Connect\ConnectRequest(
-            timeout: $this->connectionOptions->requestOptions->timeout,
+        $connectResponse = namespace\connect(
+            new Protocol\Connect\ConnectRequest(
+                timeout: $this->connectionOptions->requestOptions->timeout,
+            ),
+            $socket,
         );
-
-        $socket->write(
-            Byte\packRequest($request),
-        );
-
-        /** @phpstan-ignore-next-line */
-        $connectResponse = Byte\unpackResponse($request, $socket->read());
-
-        if ($connectResponse->sessionId === 0) {
-            throw new SessionExpiredException();
-        }
 
         $xid = 0;
 
@@ -53,14 +48,17 @@ final class Zookeeper
         foreach ($this->connectionOptions->requestOptions as $authScheme) {
             $request = new Protocol\Request(
                 ++$xid,
-                Protocol\OpCode::Auth,
+                Protocol\OpCode::AUTH,
                 new Protocol\Auth\AuthRequest(0, $authScheme->scheme, $authScheme->credentials),
             );
 
             $socket->write(Byte\packRequest($request));
 
-            /** @var Protocol\Response<Protocol\Auth\AuthResponse> $response */
-            $response = Byte\unpackResponse($request, $socket->read());
+            $authBuffer = $socket->read();
+            \assert(null !== $authBuffer, 'Auth response must not be empty.');
+
+            /** @var Protocol\Response $response */
+            $response = Byte\unpackResponse($request, $authBuffer);
 
             if ($response->errorCode !== Protocol\ErrorCode::OK) {
                 throw UnexpectedResponseReceived::fromErrorCode($response->errorCode);
@@ -69,6 +67,7 @@ final class Zookeeper
 
         return $this->nodes[] = new Node(
             $socket,
+            $this->connectionOptions->requestOptions->timeout,
             $connectResponse->sessionId,
             $connectResponse->password,
             $xid,

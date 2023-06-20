@@ -34,7 +34,8 @@
             "Kafkiansky\\Zookeeper\\": "src/"
         },
         "files": [
-            "src/Byte/functions.php"
+            "src/Byte/functions.php",
+            "src/functions.php"
         ]
     },
     "autoload-dev": {
