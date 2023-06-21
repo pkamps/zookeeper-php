@@ -24,6 +24,7 @@ final class Node
     /** @var int<0, max> */
     private int $xid;
 
+    /** @phpstan-ignore-next-line */
     private int $zxid = 0;
 
     /** @var array<int, callable(Buffer, ?Protocol\ErrorCode): void> */
@@ -47,6 +48,9 @@ final class Node
      * @param non-empty-string                                       $path
      * @param non-empty-string                                       $data
      * @phpstan-param iterable<array-key, Protocol\Acl>|Protocol\Acl $acls
+     *
+     * @throws StreamException
+     * @throws ClosedException
      *
      * @return Future<string>
      */
@@ -132,6 +136,9 @@ final class Node
     /**
      * @param non-empty-string $path
      *
+     * @throws StreamException
+     * @throws ClosedException
+     *
      * @return Future<bool>
      */
     public function delete(string $path, int $version): Future
@@ -156,6 +163,9 @@ final class Node
 
     /**
      * @param non-empty-string $path
+     *
+     * @throws StreamException
+     * @throws ClosedException
      *
      * @return Future<?Protocol\Stat>
      */
@@ -182,6 +192,9 @@ final class Node
     /**
      * @param non-empty-string $path
      *
+     * @throws StreamException
+     * @throws ClosedException
+     *
      * @return Future<array{Protocol\Acl[], Protocol\Stat}>
      */
     public function getAcl(string $path): Future
@@ -203,6 +216,9 @@ final class Node
      * @param non-empty-string                                       $path
      * @phpstan-param iterable<array-key, Protocol\Acl>|Protocol\Acl $acls
      *
+     * @throws StreamException
+     * @throws ClosedException
+     *
      * @return Future<Protocol\Stat>
      */
     public function setAcl(
@@ -222,6 +238,9 @@ final class Node
 
     /**
      * @param non-empty-string $path
+     *
+     * @throws StreamException
+     * @throws ClosedException
      *
      * @return Future<string>
      */
@@ -290,7 +309,6 @@ final class Node
     {
         $this->socket->shutdown();
     }
-
 
     /**
      * @template TReturn

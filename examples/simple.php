@@ -16,18 +16,18 @@ $node->run(sleep: 1);
 
 Zookeeper\shutdownOnSignals($node);
 
-dump($node->delete('/local', 0)->await());
-dump($node->create('/local', 'data', Zookeeper\Protocol\Acl::openUnsafe())->await());
-dump($node->getAcl('/local')->await());
-dump($node->setAcl('/local', Zookeeper\Protocol\Acl::readUnsafe(), 0)->await());
-dump($node->sync('/local')->await());
+var_dump($node->delete('/local', 0)->await());
+var_dump($node->create('/local', 'data', Zookeeper\Protocol\Acl::openUnsafe())->await());
+var_dump($node->getAcl('/local')->await());
+var_dump($node->setAcl('/local', Zookeeper\Protocol\Acl::readUnsafe(), 0)->await());
+var_dump($node->sync('/local')->await());
 
 try {
-    dump($node->delete('/local', 2)->await());
+    var_dump($node->delete('/local', 2)->await());
 } catch (Zookeeper\UnexpectedResponseReceived $e) {
-    dump($e->errorCode);
+    var_dump($e->errorCode);
 }
 
-dump($node->delete('/local', 0)->await());
+var_dump($node->delete('/local', 0)->await());
 
 EventLoop::run();

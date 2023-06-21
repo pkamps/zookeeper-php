@@ -23,6 +23,11 @@ final class Zookeeper
         return new self($connectionOptions);
     }
 
+    public static function fromSocket(Socket\Socket $socket, ConnectionOptions $options): self
+    {
+        return new self($options, $socket);
+    }
+
     /**
      * @throws Amp\ByteStream\ClosedException
      * @throws Amp\ByteStream\StreamException
@@ -33,7 +38,10 @@ final class Zookeeper
      */
     public function node(): Node
     {
-        $socket = Network\BufferedSocket::connect($this->connectionOptions);
+        $socket = null !== $this->socket
+            ? Network\BufferedSocket::fromSocket($this->socket, $this->connectionOptions)
+            : Network\BufferedSocket::connect($this->connectionOptions)
+        ;
 
         $connectResponse = namespace\connect(
             new Protocol\Connect\ConnectRequest(
@@ -83,6 +91,7 @@ final class Zookeeper
 
     private function __construct(
         private readonly ConnectionOptions $connectionOptions,
+        private readonly ?Socket\Socket $socket = null,
     ) {
     }
 }

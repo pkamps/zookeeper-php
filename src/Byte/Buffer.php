@@ -28,6 +28,11 @@ final class Buffer extends ByteBuffer
         return $this->appendUint8((int) $v);
     }
 
+    public static function putString(self $buffer, string $v): void
+    {
+        $buffer->appendString($v);
+    }
+
     public function appendString(string $v): self
     {
         return $this

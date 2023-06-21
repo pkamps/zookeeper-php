@@ -15,6 +15,14 @@ use Kafkiansky\Zookeeper\ConnectionOptions;
  */
 final class BufferedSocket
 {
+    public static function fromSocket(Socket\Socket $socket, ConnectionOptions $options): self
+    {
+        return new self(
+            $socket,
+            $options->requestOptions->recvTimeout,
+        );
+    }
+
     /**
      * @throws Amp\CancelledException
      * @throws Socket\ConnectException
