@@ -273,8 +273,6 @@ final class Node
                         }
 
                         $this->zxid = $response->zxid;
-                    } elseif ($response->xid === -2) {
-                        dump('PONG');
                     }
 
                     /** If there is data on the socket, we should not call delay. Instead, we should read the data from the socket as fast as we can. */
