@@ -19,9 +19,6 @@ final class Permission implements \IteratorAggregate
     public const ADMIN = 0b10000;
     public const ALL = 0b11111;
 
-    /**
-     * @phpstan-param Permission::* $flags
-     */
     public static function new(int $flags): self
     {
         return new self($flags);

@@ -6,6 +6,7 @@ namespace Kafkiansky\Zookeeper\Byte;
 
 use Kafkiansky\Zookeeper\Protocol\ErrorCode;
 use Kafkiansky\Zookeeper\Protocol\OpCode;
+use PHPinnacle\Buffer\BufferOverflow;
 use PHPinnacle\Buffer\ByteBuffer;
 
 /**
@@ -55,6 +56,24 @@ final class Buffer extends ByteBuffer
         }
 
         return $this;
+    }
+
+    /**
+     * @template T
+     *
+     * @param callable(Buffer): T $consumer
+     *
+     * @throws BufferOverflow
+     *
+     * @return \Generator<T>
+     */
+    public function consumeIterator(callable $consumer): \Generator
+    {
+        $len = $this->consumeUint32();
+
+        for ($i = 0; $i < $len; ++$i) {
+            yield $consumer($this);
+        }
     }
 
     public function appendOpCode(OpCode $opCode): self

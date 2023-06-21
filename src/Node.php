@@ -13,7 +13,6 @@ use Amp\SignalCancellation;
 use Kafkiansky\Zookeeper\Byte\Buffer;
 use Kafkiansky\Zookeeper\Network;
 use Kafkiansky\Zookeeper\Protocol;
-use PHPinnacle\Buffer\BufferOverflow;
 use function Amp\async;
 use function Amp\delay;
 
@@ -156,24 +155,97 @@ final class Node
     }
 
     /**
+     * @param non-empty-string $path
+     *
+     * @return Future<?Protocol\Stat>
+     */
+    public function exists(string $path, bool $watch = false): Future
+    {
+        /** @var Future<?Protocol\Stat> */
+        return $this->await(
+            Protocol\OpCode::EXISTS,
+            new Protocol\Exists\ExistsRequest($path, $watch),
+            static function (DeferredFuture $future, Protocol\Exists\ExistsResponse $response): void {
+                $future->complete($response->stat);
+            },
+            static function (DeferredFuture $future, Protocol\ErrorCode $errorCode): void {
+                if (Protocol\ErrorCode::NO_NODE === $errorCode) {
+                    $future->complete();
+                    return;
+                }
+
+                self::throwError($future, $errorCode);
+            },
+        );
+    }
+
+    /**
+     * @param non-empty-string $path
+     *
+     * @return Future<array{Protocol\Acl[], Protocol\Stat}>
+     */
+    public function getAcl(string $path): Future
+    {
+        /** @var Future<array{Protocol\Acl[], Protocol\Stat}> */
+        return $this->await(
+            Protocol\OpCode::GET_ACL,
+            new Protocol\Acl\GetAclRequest($path),
+            static function (DeferredFuture $future, Protocol\Acl\GetAclResponse $response): void {
+                $future->complete([
+                    $response->acls,
+                    $response->stat,
+                ]);
+            },
+        );
+    }
+
+    /**
+     * @param non-empty-string                                       $path
+     * @phpstan-param iterable<array-key, Protocol\Acl>|Protocol\Acl $acls
+     *
+     * @return Future<Protocol\Stat>
+     */
+    public function setAcl(
+        string $path,
+        iterable|Protocol\Acl $acls,
+        int $version,
+    ): Future {
+        /** @var Future<Protocol\Stat> */
+        return $this->await(
+            Protocol\OpCode::SET_ACL,
+            new Protocol\Acl\SetAclRequest($path, \is_iterable($acls) ? [...$acls] : [$acls], $version),
+            static function (DeferredFuture $future, Protocol\Acl\SetAclResponse $response): void {
+                $future->complete($response->stat);
+            },
+        );
+    }
+
+    /**
+     * @param non-empty-string $path
+     *
+     * @return Future<string>
+     */
+    public function sync(string $path): Future
+    {
+        /** @var Future<string> */
+        return $this->await(
+            Protocol\OpCode::SYNC,
+            new Protocol\Sync\SyncRequest($path),
+            static function (DeferredFuture $future, Protocol\Sync\SyncResponse $response): void {
+                $future->complete($response->path);
+            },
+        );
+    }
+
+    /**
      * @throws ClosedException
      * @throws StreamException
-     * @throws BufferOverflow
      */
-    public function reconnect(): void
+    public function ping(): void
     {
-        $connectResponse = namespace\connect(
-            new Protocol\Connect\ConnectRequest(
-                timeout: $this->timeout,
-                lastZxidSeen: $this->zxid,
-                sessionId: $this->sessionId,
-                password: $this->password,
-            ),
-            $this->socket,
+        $this->socket->write(
+            Byte\packRequest(new Protocol\Request(++$this->xid, Protocol\OpCode::PING, new Protocol\Ping\PingRequest())),
         );
-
-        $this->sessionId = $connectResponse->sessionId;
-        $this->password = $connectResponse->password;
     }
 
     /**
@@ -201,6 +273,8 @@ final class Node
                         }
 
                         $this->zxid = $response->zxid;
+                    } elseif ($response->xid === -2) {
+                        dump('PONG');
                     }
 
                     /** If there is data on the socket, we should not call delay. Instead, we should read the data from the socket as fast as we can. */

@@ -16,7 +16,11 @@ $node->run(sleep: 1);
 
 Zookeeper\shutdownOnSignals($node);
 
+dump($node->delete('/local', 0)->await());
 dump($node->create('/local', 'data', Zookeeper\Protocol\Acl::openUnsafe())->await());
+dump($node->getAcl('/local')->await());
+dump($node->setAcl('/local', Zookeeper\Protocol\Acl::readUnsafe(), 0)->await());
+dump($node->sync('/local')->await());
 
 try {
     dump($node->delete('/local', 2)->await());

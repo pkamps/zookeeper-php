@@ -36,13 +36,7 @@ final class CreateRequest implements ZookeeperRequest
         $buffer = (new Byte\Buffer())
             ->appendString($this->path)
             ->appendString($this->data)
-            ->appendList($this->acls, function (Byte\Buffer $buffer, Acl $acl): void {
-                $buffer
-                    ->appendInt32($acl->perms->flags)
-                    ->appendString($acl->scheme)
-                    ->appendString($acl->id)
-                ;
-            })
+            ->appendList($this->acls, Acl::pack(...))
             ->appendInt32($this->mode->flags)
         ;
 
